@@ -1,0 +1,92 @@
+﻿@page "/Empleados"
+
+@using BlazorCrud.Shared;
+@using CurrieTechnologies.Razor.SweetAlert2;
+@using BlazorCrud.Client.Services;
+
+@inject SweetAlertService swal;
+@inject IEmpleadoService empleadoService;
+
+
+<h3>Empleados</h3>
+
+
+<a class="btn btn-success btm-sm mb-3" href="Empleado"> Nuevo empleado </a>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre Completo</th>
+            <th>Departamento</th>
+            <th>Sueldo</th>
+            <th>Fecha de contrato</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @if (ListaEmpleado == null)
+        {
+            <tr>
+                <td colspan="5" align="center">
+                    <img style="width:50px" src="https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif" />
+                </td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in ListaEmpleado)
+            {
+                <tr>
+                    <td>@item.NomrbreCompleto</td>
+                    <td>@item.Departamento.Nombre</td>
+                    <td>@item.Sueldo</td>
+                   <td>@item.FechaContrato</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="Empleado/@item.IdEmpleado">
+                            <i class="oi oi-pencil"></i>
+                        </a>
+
+                        <button type="button" class="btn btn-danger btn-sm ms-2" @onclick="(() => Eliminar(item.IdEmpleado))">
+                            <i class="oi oi-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+
+
+@code {
+    List<EmpleadoDTO>? ListaEmpleado = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaEmpleado = await empleadoService.List();
+    }
+
+    private async Task Eliminar (int id)
+    {
+        var Resultado = await swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Eliminar Empleado",
+                Text = "Deseas eliminar este empleado",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton= true
+        });
+
+        if (Resultado.IsConfirmed)
+        {
+            var Eliminado = await empleadoService.DeleteById(id);
+
+            if (Eliminado)
+                ListaEmpleado = ListaEmpleado!.FindAll(e=>e.IdEmpleado != id );
+        }
+    }
+
+}
